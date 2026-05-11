@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Accident Report</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f5f5;
+      text-align: center;
+    }
+
+    form {
+      background: white;
+      padding: 20px;
+      margin: 30px auto;
+      width: 300px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px gray;
+    }
+
+    input, select {
+      width: 90%;
+      padding: 10px;
+      margin: 5px;
+    }
+
+    button {
+      background: #007BFF;
+      color: white;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #map {
+      height: 300px;
+      margin: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>🚨 Accident Report</h2>
+
+<form id="reportForm">
+  <input type="text" id="location" placeholder="Location" readonly><br>
+  <input type="text" id="description" placeholder="Description"><br>
+  <input type="tel" id="phone" placeholder="Phone Number"><br>
+
+  <select id="type">
+    <option value="">Accident Type</option>
+    <option>Collision</option>
+    <option>Fire</option>
+    <option>Overturn</option>
+    <option>Other</option>
+  </select><br>
+
+  <input type="file" id="image"><br>
+
+  <button type="submit">Submit</button>
+</form>
+
+<div id="map"></div>
+
+<!-- Google Maps -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXNJlAcKBk0-wKPUfJBQMj9XcOTiMVtp"></script>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+// 🔥 Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyD5i7LkVRCKg2L2PrzwNm7PeDYKytR-jOc",
+  authDomain: "accident-cloud-system-41ad9.firebaseapp.com",
+  projectId: "accident-cloud-system-41ad9",
+  storageBucket: "accident-cloud-system-41ad9.firebasestorage.app",
+  messagingSenderId: "460550861200",
+  appId: "1:460550861200:web:bd0a77ac5a6b29a52c4315"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// 📍 GPS - Check URL params first, then fallback to geolocation
+let lat, lng;
+
+// Extract lat/lng from URL query string
+const urlParams = new URLSearchParams(window.location.search);
+const urlLat = urlParams.get('lat');
+const urlLng = urlParams.get('lng');
+
+function initializeMap(latitude, longitude) {
+  lat = latitude;
+  lng = longitude;
+  
+  document.getElementById("location").value =
+    "Lat: " + lat.toFixed(6) + " , Lng: " + lng.toFixed(6);
+
+  // 🗺️ Map
+  const map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat, lng },
+    zoom: 15
+  });
+
+  new google.maps.Marker({
+    position: { lat, lng },
+    map: map
+  });
+}
+
+// Use URL params if available, otherwise request geolocation
+if (urlLat && urlLng) {
+  initializeMap(parseFloat(urlLat), parseFloat(urlLng));
+} else {
+  navigator.geolocation.getCurrentPosition((pos) => {
+    initializeMap(pos.coords.latitude, pos.coords.longitude);
+  }, () => {
+    // Fallback to default location if geolocation fails
+    initializeMap(24.7136, 46.6753); // Riyadh, SA
+  });
+}
+
+// 🚨 Submit
+document.getElementById("reportForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const description = document.getElementById("description").value;
+  const phone = document.getElementById("phone").value;
+  const type = document.getElementById("type").value;
+  const file = document.getElementById("image").files[0];
+
+  let imageUrl = "";
+
+  if (file) {
+    const storageRef = ref(storage, "images/" + file.name);
+    await uploadBytes(storageRef, file);
+    imageUrl = await getDownloadURL(storageRef);
+  }
+
+  await addDoc(collection(db, "accidents"), {
+    lat,
+    lng,
+    description,
+    phone,
+    type,
+    image: imageUrl,
+    time: new Date()
+  });
+
+  alert("🚨 Report Sent!");
+});
+
+</script>
+
+</body>
+</html>
