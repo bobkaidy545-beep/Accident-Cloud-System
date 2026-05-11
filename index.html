@@ -1,1 +1,917 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة حوادث المرور</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg: #0a0d13;
+      --surface: #111620;
+      --surface2: #181e2c;
+      --border: #1f2a3d;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59,130,246,0.18);
+      --danger: #ef4444;
+      --danger-glow: rgba(239,68,68,0.15);
+      --warning: #f59e0b;
+      --warning-glow: rgba(245,158,11,0.15);
+      --success: #10b981;
+      --success-glow: rgba(16,185,129,0.15);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      position: fixed;
+      top: 0; right: 0;
+      width: 220px;
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      box-shadow: 0 0 16px rgba(239,68,68,0.35);
+    }
+
+    .logo-text { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+    .logo-sub  { font-size: 10px; color: var(--muted); font-weight: 300; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 20px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 400;
+      cursor: pointer;
+      border-right: 3px solid transparent;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .nav-item:hover { color: var(--text); background: var(--surface2); }
+
+    .nav-item.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-right-color: var(--accent);
+      font-weight: 500;
+    }
+
+    .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .nav-section {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      padding: 16px 20px 6px;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      display: inline-block;
+      margin-left: 6px;
+    }
+
+    /* ─── MAIN ─── */
+    .main {
+      margin-right: 220px;
+      min-height: 100vh;
+    }
+
+    /* ─── TOPBAR ─── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar h1 { font-size: 18px; font-weight: 600; }
+    .topbar-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .btn-primary:hover { background: #2563eb; box-shadow: 0 0 28px rgba(59,130,246,0.35); }
+
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ─── CONTENT ─── */
+    .content { padding: 28px 32px; }
+
+    /* ─── STATS GRID ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover { transform: translateY(-2px); }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      opacity: 0.08;
+      transform: translate(20px, -20px);
+    }
+
+    .stat-card.blue  { border-top: 2px solid var(--accent); }
+    .stat-card.blue::before  { background: var(--accent); }
+    .stat-card.red   { border-top: 2px solid var(--danger); }
+    .stat-card.red::before   { background: var(--danger); }
+    .stat-card.yellow{ border-top: 2px solid var(--warning); }
+    .stat-card.yellow::before{ background: var(--warning); }
+    .stat-card.green { border-top: 2px solid var(--success); }
+    .stat-card.green::before { background: var(--success); }
+
+    .stat-icon {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-card.blue  .stat-value { color: var(--accent); }
+    .stat-card.red   .stat-value { color: var(--danger); }
+    .stat-card.yellow.stat-value { color: var(--warning); }
+    .stat-card.yellow .stat-value { color: var(--warning); }
+    .stat-card.green .stat-value { color: var(--success); }
+
+    .stat-label { font-size: 12px; color: var(--muted); }
+
+    .stat-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .badge-live { background: rgba(16,185,129,0.15); color: var(--success); }
+
+    /* ─── TWO COL ─── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ─── PANEL ─── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .panel-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--surface2);
+      color: var(--muted);
+    }
+
+    /* ─── FORM ─── */
+    .form-body { padding: 20px; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    .form-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .form-input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .form-input::placeholder { color: var(--muted); }
+
+    select.form-input option { background: var(--surface2); }
+
+    textarea.form-input {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .severity-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .sev-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .sev-btn:hover { border-color: currentColor; }
+    .sev-btn.active-low    { background: var(--success-glow); color: var(--success); border-color: var(--success); }
+    .sev-btn.active-mid    { background: var(--warning-glow); color: var(--warning); border-color: var(--warning); }
+    .sev-btn.active-high   { background: var(--danger-glow);  color: var(--danger);  border-color: var(--danger); }
+
+    .btn-submit {
+      width: 100%;
+      padding: 11px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 6px;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .btn-submit:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 4px 24px rgba(59,130,246,0.4); }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { background: var(--muted); cursor: not-allowed; box-shadow: none; transform: none; }
+
+    /* ─── ACCIDENTS LIST ─── */
+    .list-body { padding: 0; }
+
+    .filter-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ftab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      background: none;
+      border-top: none;
+      border-right: none;
+      border-left: none;
+      font-family: inherit;
+    }
+
+    .ftab:hover { color: var(--text); }
+    .ftab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    #accidents-list { max-height: 520px; overflow-y: auto; }
+    #accidents-list::-webkit-scrollbar { width: 4px; }
+    #accidents-list::-webkit-scrollbar-track { background: transparent; }
+    #accidents-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .accident-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .accident-row:hover { background: var(--surface2); }
+    .accident-row:last-child { border-bottom: none; }
+
+    .sev-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .sev-dot.خفيف  { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .sev-dot.متوسط { background: var(--warning); box-shadow: 0 0 6px var(--warning); }
+    .sev-dot.خطير  { background: var(--danger);  box-shadow: 0 0 6px var(--danger); }
+
+    .acc-info { flex: 1; min-width: 0; }
+
+    .acc-type {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .acc-loc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .acc-right { text-align: left; flex-shrink: 0; }
+
+    .acc-time {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .sev-chip {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .sev-chip.خفيف  { background: var(--success-glow); color: var(--success); }
+    .sev-chip.متوسط { background: var(--warning-glow); color: var(--warning); }
+    .sev-chip.خطير  { background: var(--danger-glow);  color: var(--danger); }
+
+    .btn-del {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      padding: 3px 8px;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 4px;
+      transition: all 0.2s;
+      display: block;
+    }
+
+    .btn-del:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* ─── EMPTY ─── */
+    .empty {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--muted);
+    }
+
+    .empty-icon { font-size: 2.5rem; margin-bottom: 8px; opacity: 0.4; }
+    .empty p { font-size: 13px; }
+
+    /* ─── LOADING ─── */
+    .loading-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 12px 20px;
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      pointer-events: none;
+      z-index: 999;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-right: 0; }
+      .topbar, .content { padding: 16px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🚨</div>
+    <div>
+      <div class="logo-text">حوادث المرور</div>
+      <div class="logo-sub">نظام الإدارة السحابي</div>
+    </div>
+  </div>
+
+  <div class="nav-section">القائمة</div>
+  <a class="nav-item active" onclick="showTab('dashboard')">
+    <span class="nav-icon">📊</span> الداشبورد
+  </a>
+  <a class="nav-item" href="map.html">
+    <span class="nav-icon">🗺️</span> الخريطة
+  </a>
+  <a class="nav-item" href="report.html">
+    <span class="nav-icon">📝</span> تقرير جديد
+  </a>
+  <a class="nav-item" href="notifications.html">
+    <span class="nav-icon">🔔</span> الإشعارات
+  </a>
+
+  <div class="sidebar-bottom">
+    <div style="font-size:11px; color:var(--muted); display:flex; align-items:center;">
+      <span class="status-dot"></span> النظام يعمل
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar h1" style="font-size:18px; font-weight:600;">لوحة التحكم</div>
+      <div class="topbar-sub" id="current-time">جاري التحميل...</div>
+    </div>
+    <div class="topbar-actions">
+      <a href="login.html" class="btn btn-ghost">تسجيل الدخول</a>
+      <button class="btn btn-primary" onclick="document.getElementById('location-inp').focus()">+ تسجيل حادث</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-badge badge-live">● مباشر</div>
+        <div class="stat-icon">📋</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-label">إجمالي الحوادث</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon">📅</div>
+        <div class="stat-value" id="stat-today">—</div>
+        <div class="stat-label">حوادث اليوم</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-value" id="stat-severe">—</div>
+        <div class="stat-label">حوادث خطيرة</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" id="stat-light">—</div>
+        <div class="stat-label">حوادث خفيفة</div>
+      </div>
+    </div>
+
+    <!-- TWO COL -->
+    <div class="two-col">
+
+      <!-- ACCIDENTS LIST -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">سجل الحوادث</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span class="panel-badge" id="list-count">0 حادثة</span>
+          </div>
+        </div>
+        <div class="filter-tabs">
+          <button class="ftab active" onclick="setFilter('all', this)">الكل</button>
+          <button class="ftab" onclick="setFilter('خفيف', this)">خفيف</button>
+          <button class="ftab" onclick="setFilter('متوسط', this)">متوسط</button>
+          <button class="ftab" onclick="setFilter('خطير', this)">خطير</button>
+        </div>
+        <div id="accidents-list">
+          <!-- skeleton -->
+          <div class="loading-row">
+            <div class="skeleton" style="width:10px; height:10px; border-radius:50%;"></div>
+            <div style="flex:1;">
+              <div class="skeleton" style="height:12px; width:60%; margin-bottom:6px;"></div>
+              <div class="skeleton" style="height:10px; width:40%;"></div>
+            </div>
+          </div>
+          <div class="loading-row">
+            <div class="skeleton" style="width:10px; height:10px; border-radius:50%;"></div>
+            <div style="flex:1;">
+              <div class="skeleton" style="height:12px; width:50%; margin-bottom:6px;"></div>
+              <div class="skeleton" style="height:10px; width:35%;"></div>
+            </div>
+          </div>
+          <div class="loading-row">
+            <div class="skeleton" style="width:10px; height:10px; border-radius:50%;"></div>
+            <div style="flex:1;">
+              <div class="skeleton" style="height:12px; width:70%; margin-bottom:6px;"></div>
+              <div class="skeleton" style="height:10px; width:45%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORM -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">➕ تسجيل حادث جديد</div>
+        </div>
+        <div class="form-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">الموقع</label>
+              <input class="form-input" id="location-inp" type="text" placeholder="شارع الملك فهد...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">نوع الحادث</label>
+              <input class="form-input" id="type-inp" type="text" placeholder="تصادم خلفي...">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">درجة الخطورة</label>
+            <div class="severity-btns">
+              <button class="sev-btn" id="sev-low" onclick="setSeverity('خفيف')">🟢 خفيف</button>
+              <button class="sev-btn" id="sev-mid" onclick="setSeverity('متوسط')">🟡 متوسط</button>
+              <button class="sev-btn" id="sev-high" onclick="setSeverity('خطير')">🔴 خطير</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">عدد المركبات</label>
+              <input class="form-input" id="vehicles-inp" type="number" placeholder="0" min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">عدد المصابين</label>
+              <input class="form-input" id="injured-inp" type="number" placeholder="0" min="0">
+            </div>
+          </div>
+
+          <div class="form-group full" style="margin-bottom:16px;">
+            <label class="form-label">ملاحظات</label>
+            <textarea class="form-input" id="notes-inp" placeholder="أي تفاصيل إضافية..."></textarea>
+          </div>
+
+          <button class="btn-submit" id="submit-btn" onclick="addAccident()">تسجيل الحادث</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    deleteDoc,
+    doc,
+    onSnapshot,
+    query,
+    orderBy,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD5i7LkVRCKg2L2PrzwNm7PeDYKytR-jOc",
+    authDomain: "accident-cloud-system-41ad9.firebaseapp.com",
+    projectId: "accident-cloud-system-41ad9",
+    storageBucket: "accident-cloud-system-41ad9.firebasestorage.app",
+    messagingSenderId: "460550861200",
+    appId: "1:460550861200:web:bd0a77ac5a6b29a52c4315"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  // ─── Time ───
+  function updateTime() {
+    const now = new Date();
+    document.getElementById('current-time').textContent =
+      now.toLocaleDateString('ar-SA', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  }
+  updateTime();
+  setInterval(updateTime, 60000);
+
+  // ─── Severity ───
+  let selectedSeverity = 'متوسط';
+  window.setSeverity = function(s) {
+    selectedSeverity = s;
+    document.querySelectorAll('.sev-btn').forEach(b => b.className = 'sev-btn');
+    const map = { 'خفيف': 'active-low', 'متوسط': 'active-mid', 'خطير': 'active-high' };
+    const ids  = { 'خفيف': 'sev-low',   'متوسط': 'sev-mid',    'خطير': 'sev-high'  };
+    document.getElementById(ids[s]).classList.add(map[s]);
+  };
+  setSeverity('متوسط');
+
+  // ─── Toast ───
+  window.showToast = function(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  };
+
+  // ─── Add Accident to Firebase ───
+  window.addAccident = async function() {
+    const location = document.getElementById('location-inp').value.trim();
+    const type     = document.getElementById('type-inp').value.trim();
+    const vehicles = document.getElementById('vehicles-inp').value;
+    const injured  = document.getElementById('injured-inp').value;
+    const notes    = document.getElementById('notes-inp').value.trim();
+
+    if (!location || !type) {
+      showToast('⚠️ يرجى إدخال الموقع ونوع الحادث');
+      return;
+    }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'جاري الحفظ...';
+
+    try {
+      await addDoc(collection(db, 'accidents'), {
+        location,
+        type,
+        severity: selectedSeverity,
+        vehicles: vehicles || '0',
+        injured:  injured  || '0',
+        notes,
+        createdAt: serverTimestamp(),
+        date: new Date().toDateString(),
+        time: new Date().toLocaleString('ar-SA', { hour:'2-digit', minute:'2-digit', month:'short', day:'numeric' })
+      });
+
+      showToast('✅ تم تسجيل الحادث في Firebase');
+
+      // Clear form
+      document.getElementById('location-inp').value = '';
+      document.getElementById('type-inp').value     = '';
+      document.getElementById('vehicles-inp').value = '';
+      document.getElementById('injured-inp').value  = '';
+      document.getElementById('notes-inp').value    = '';
+      setSeverity('متوسط');
+    } catch (err) {
+      showToast('❌ خطأ في الحفظ: ' + err.message);
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'تسجيل الحادث';
+  };
+
+  // ─── Delete ───
+  window.deleteAccident = async function(id) {
+    try {
+      await deleteDoc(doc(db, 'accidents', id));
+      showToast('🗑️ تم حذف الحادث');
+    } catch (err) {
+      showToast('❌ خطأ في الحذف');
+    }
+  };
+
+  // ─── Filter ───
+  let currentFilter = 'all';
+  let allAccidents  = [];
+
+  window.setFilter = function(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderList();
+  };
+
+  function renderList() {
+    const list = document.getElementById('accidents-list');
+    const filtered = currentFilter === 'all'
+      ? allAccidents
+      : allAccidents.filter(a => a.severity === currentFilter);
+
+    document.getElementById('list-count').textContent = filtered.length + ' حادثة';
+
+    if (filtered.length === 0) {
+      list.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">🚗</div>
+          <p>لا توجد حوادث مسجلة</p>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(a => `
+      <div class="accident-row">
+        <div class="sev-dot ${a.severity}"></div>
+        <div class="acc-info">
+          <div class="acc-type">${a.type}</div>
+          <div class="acc-loc">📍 ${a.location}${a.vehicles && a.vehicles !== '0' ? ' · 🚗 ' + a.vehicles : ''}${a.injured && a.injured !== '0' ? ' · 🤕 ' + a.injured : ''}</div>
+          ${a.notes ? `<div class="acc-loc" style="font-style:italic;">${a.notes}</div>` : ''}
+        </div>
+        <div class="acc-right">
+          <div class="acc-time">${a.time || '—'}</div>
+          <span class="sev-chip ${a.severity}">${a.severity}</span>
+          <button class="btn-del" onclick="deleteAccident('${a.id}')">حذف</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function updateStats() {
+    const today = new Date().toDateString();
+    document.getElementById('stat-total').textContent  = allAccidents.length;
+    document.getElementById('stat-today').textContent  = allAccidents.filter(a => a.date === today).length;
+    document.getElementById('stat-severe').textContent = allAccidents.filter(a => a.severity === 'خطير').length;
+    document.getElementById('stat-light').textContent  = allAccidents.filter(a => a.severity === 'خفيف').length;
+  }
+
+  // ─── Real-time listener ───
+  const q = query(collection(db, 'accidents'), orderBy('createdAt', 'desc'));
+
+  onSnapshot(q, (snapshot) => {
+    allAccidents = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderList();
+    updateStats();
+  }, (err) => {
+    console.error(err);
+    showToast('⚠️ تعذر الاتصال بـ Firebase');
+  });
+</script>
+
+</body>
+</html>
