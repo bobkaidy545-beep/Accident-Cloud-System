@@ -1,3 +1,6 @@
+Index · HTML
+Copy
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -327,6 +330,30 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    .btn-dashboard {
+      margin-right: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.85rem;
+      padding: 7px 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .btn-dashboard:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+      background: var(--surface2);
+    }
+
     @media (max-width: 540px) {
       .stats { grid-template-columns: 1fr 1fr; }
       .form-grid { grid-template-columns: 1fr; }
@@ -344,6 +371,7 @@
       <h1>نظام إدارة حوادث المرور</h1>
       <p>تسجيل ومتابعة الحوادث المرورية</p>
     </div>
+    <a href="dashboard.html" class="btn-dashboard">🏠 الداشبورد</a>
   </header>
 
   <div class="stats">
