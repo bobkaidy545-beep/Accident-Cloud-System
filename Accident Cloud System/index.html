@@ -901,7 +901,7 @@
   }
 
   // ─── Real-time listener ───
-  const q = query(collection(db, 'accidents'), orderBy('createdAt', 'desc'));
+  const q = query(collection(db, 'accidents'));
 
   onSnapshot(q, (snapshot) => {
     allAccidents = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
